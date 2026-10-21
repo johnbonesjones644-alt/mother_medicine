@@ -637,3 +637,17 @@ const SYMPTOMS = [
     seeDoctor: "Panic attacks, intrusive thoughts, or anxiety that interferes with daily life."
   }
 ];
+
+// Symptoms whose warning signs may need same-day / emergency care.
+const URGENT = ["Spotting", "Reduced baby movement", "High blood pressure / pre-eclampsia signs", "Itchy palms and soles (cholestasis)", "Hyperemesis (severe vomiting)", "Fever / flu", "Early pregnancy cramping", "Urinary tract infection (UTI) symptoms", "Shortness of breath", "Palpitations / racing heart"];
+SYMPTOMS.forEach(s => { s.urgent = URGENT.includes(s.name); });
+
+// Extra everyday phrases mapped to symptom names.
+const SYNONYMS = {
+  "throwing up": "Nausea / morning sickness", "puke": "Nausea / morning sickness", "vomit": "Nausea / morning sickness",
+  "tired": "Anemia (low iron) symptoms", "exhausted": "Anemia (low iron) symptoms", "fatigue": "Anemia (low iron) symptoms",
+  "pee": "Frequent urination", "cant sleep": "Trouble sleeping", "insomnia": "Trouble sleeping",
+  "swollen": "Swollen feet", "cramps": "Leg cramps", "constipated": "Constipation", "dizzy": "Dizziness / fainting",
+  "baby not moving": "Reduced baby movement", "no movement": "Reduced baby movement", "kicks": "Reduced baby movement",
+  "blood pressure": "High blood pressure / pre-eclampsia signs", "sad": "Depression", "worried": "Anxiety about labour and birth"
+};
