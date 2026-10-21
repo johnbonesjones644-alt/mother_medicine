@@ -9,7 +9,7 @@ Website for pregnant women to search their medical symptoms and see pregnancy-fr
 - A modern web browser (Chrome, Firefox, Safari, Edge).
 - Optional, for a local server: Python 3 **or** Node.js (any recent version).
 
-The site is plain static HTML/CSS/JavaScript (`index.html`, `styles.css`, `app.js`, `data.js`). There is no build step and no dependencies to install.
+The site is plain static HTML/CSS/JavaScript (`index.html`, `styles.css`, `app.js`, `symptom_data.js`). There is no build step and no dependencies to install.
 
 ## Run locally
 
@@ -33,7 +33,7 @@ The site is plain static HTML/CSS/JavaScript (`index.html`, `styles.css`, `app.j
 - `index.html` – page markup
 - `styles.css` – styling
 - `app.js` – search logic and rendering
-- `data.js` – symptom and treatment data
+- `symptom_data.js` – symptom and treatment data
 
 ## API research
 
