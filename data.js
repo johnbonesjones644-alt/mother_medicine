@@ -69,5 +69,61 @@ const SYMPTOMS = [
     treatments: ["Elevate your feet", "Rest on your left side", "Comfortable shoes", "Stay hydrated"],
     avoid: ["Diuretics unless prescribed"],
     seeDoctor: "Sudden swelling of face or hands, or with headache or vision changes."
+  },
+  {
+    name: "Frequent urination",
+    keywords: ["urination", "pee", "urinate", "bladder", "frequent urination"],
+    treatments: ["Empty your bladder fully; lean forward when you pee", "Drink plenty of fluids during the day, less before bed", "Pelvic floor (Kegel) exercises", "Limit caffeine"],
+    avoid: ["Cutting back on water overall"],
+    seeDoctor: "Burning, pain, blood in urine, or fever (possible urinary tract infection)."
+  },
+  {
+    name: "Breast tenderness",
+    keywords: ["breast", "breasts", "sore breasts", "tender"],
+    treatments: ["Wear a well-fitting, supportive bra", "Warm or cool compress", "Sleep in a soft support bra"],
+    avoid: [],
+    seeDoctor: "A lump, redness, or fever."
+  },
+  {
+    name: "Food cravings and aversions",
+    keywords: ["craving", "cravings", "aversion", "aversions", "food cravings", "food aversions", "smell"],
+    treatments: ["Eat balanced meals and keep healthy snacks handy", "Choose cold or bland foods if smells bother you", "Satisfy cravings in moderation"],
+    avoid: ["Non-food cravings (e.g. chalk, dirt, ice in excess)—mention to your doctor", "Raw or undercooked foods and unpasteurised dairy"],
+    seeDoctor: "You crave non-food items or cannot keep enough food down."
+  },
+  {
+    name: "Mood swings",
+    keywords: ["mood", "mood swings", "anxiety", "irritable", "emotional", "crying"],
+    treatments: ["Rest and regular sleep", "Light exercise such as walking", "Talk to a partner, friend or support group", "Eat regular meals"],
+    avoid: ["Herbal mood supplements unless approved by your doctor"],
+    seeDoctor: "Persistent sadness, anxiety, or thoughts of harming yourself or the baby."
+  },
+  {
+    name: "Shortness of breath",
+    keywords: ["breath", "breathless", "breathing", "short of breath"],
+    treatments: ["Slow down and rest", "Good posture; sit upright", "Sleep propped up with pillows", "Gentle prenatal exercise"],
+    avoid: [],
+    seeDoctor: "Sudden or severe breathlessness, chest pain, fast heartbeat, or blue lips."
+  },
+  {
+    name: "Spotting",
+    keywords: ["spotting", "bleeding", "discharge"],
+    treatments: ["Rest and note the amount and colour", "Use a pad (not a tampon)"],
+    avoid: ["Tampons and intercourse until checked"],
+    seeDoctor: "Any bleeding, especially with pain or cramping—contact your doctor promptly."
+  },
+  {
+    name: "Stretch marks and itchy skin",
+    keywords: ["stretch marks", "itch", "itchy", "skin"],
+    treatments: ["Moisturise regularly with fragrance-free lotion", "Lukewarm (not hot) baths", "Wear loose cotton clothing"],
+    avoid: ["Retinoid creams"],
+    seeDoctor: "Severe itching, especially on palms and soles (possible cholestasis)."
+  },
+  {
+    name: "Varicose veins and hemorrhoids",
+    keywords: ["varicose", "veins", "hemorrhoids", "haemorrhoids", "piles"],
+    treatments: ["Elevate your legs", "Compression stockings", "High-fibre diet and fluids", "Warm sitz baths"],
+    avoid: ["Straining on the toilet", "Standing or sitting for long periods"],
+    seeDoctor: "Heavy rectal bleeding, severe pain, or a hard painful lump in a leg."
   }
 ];

@@ -40,7 +40,7 @@ function render(_unused, found) {
   });
 }
 
-const COMMON = ["Headache", "Nausea", "Bloating", "Belly pain", "Heartburn", "Back pain", "Fatigue", "Constipation", "Dizziness", "Leg cramps"];
+const COMMON = ["Nausea", "Fatigue", "Frequent urination", "Breast tenderness", "Heartburn", "Constipation", "Bloating", "Back pain", "Headache", "Dizziness", "Leg cramps", "Food cravings", "Food aversions", "Mood swings", "Swollen feet", "Trouble sleeping", "Shortness of breath", "Belly pain", "Spotting", "Stretch marks", "Varicose veins", "Hemorrhoids"];
 const selected = [];
 const selectedEl = document.getElementById("selected");
 const suggestionsEl = document.getElementById("suggestions");
@@ -69,15 +69,35 @@ function renderChips() {
 
 function terms() {
   const t = searchInput.value.trim();
-  return t ? [...selected, t] : [...selected];
+  return t && !selected.some(n => n.toLowerCase() === t.toLowerCase()) ? [...selected, t] : [...selected];
+}
+
+function addTyped() {
+  const t = searchInput.value.trim().replace(/,+$/, "").trim();
+  if (t && !selected.some(n => n.toLowerCase() === t.toLowerCase())) selected.push(t);
+  searchInput.value = "";
+  update();
 }
 
 // MedlinePlus Web Service (NIH/NLM): free, no API key.
+// The endpoint does not reliably send CORS headers, so browsers may block a direct call;
+// fall back to a public CORS proxy if the direct request fails.
+const MEDLINE = "https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=";
+async function fetchMedlineXml(term) {
+  const url = MEDLINE + encodeURIComponent(term);
+  const attempts = [url, "https://api.allorigins.win/raw?url=" + encodeURIComponent(url)];
+  let lastErr;
+  for (const u of attempts) {
+    try {
+      const res = await fetch(u);
+      if (!res.ok) throw new Error("MedlinePlus request failed: " + res.status);
+      return await res.text();
+    } catch (err) { lastErr = err; }
+  }
+  throw lastErr;
+}
 async function medlineSearch(term) {
-  const url = "https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=" + encodeURIComponent(term);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("MedlinePlus request failed");
-  const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
+  const doc = new DOMParser().parseFromString(await fetchMedlineXml(term), "text/xml");
   return [...doc.querySelectorAll("document")].map(d => {
     const get = n => { const c = [...d.querySelectorAll("content")].find(x => x.getAttribute("name") === n); return c ? c.textContent.replace(/<[^>]+>/g, "") : ""; };
     return { title: get("title"), summary: get("FullSummary") || get("snippet"), url: d.getAttribute("url") };
@@ -91,7 +111,9 @@ async function renderMedline(list_, seq) {
   box.appendChild(status);
   results.appendChild(box);
   try {
-    const found = (await Promise.all(list_.map(medlineSearch))).flat();
+    const settled = await Promise.allSettled(list_.map(medlineSearch));
+    if (settled.every(r => r.status === "rejected")) throw settled[0].reason;
+    const found = settled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
     if (seq !== searchSeq) return;
     status.remove();
     if (!found.length) { box.appendChild(el("p", "No additional articles found.")); return; }
@@ -104,7 +126,13 @@ async function renderMedline(list_, seq) {
     });
     box.appendChild(el("p", "Source: MedlinePlus, U.S. National Library of Medicine.", "note"));
   } catch (err) {
-    if (seq === searchSeq) status.textContent = "Could not load MedlinePlus results right now.";
+    if (seq === searchSeq) {
+      status.textContent = "Could not load MedlinePlus results right now. ";
+      const a = el("a", "Search MedlinePlus directly");
+      a.href = "https://medlineplus.gov/search/?query=" + encodeURIComponent(list_.join(" "));
+      a.target = "_blank"; a.rel = "noopener noreferrer";
+      status.appendChild(a);
+    }
   }
 }
 
@@ -122,6 +150,9 @@ function update() {
   timer = setTimeout(() => renderMedline(all, seq), 400);
 }
 
-document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); update(); });
-searchInput.addEventListener("input", update);
+document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); addTyped(); });
+searchInput.addEventListener("input", () => { if (searchInput.value.endsWith(",")) addTyped(); else update(); });
+searchInput.addEventListener("keydown", e => {
+  if (e.key === "Backspace" && !searchInput.value && selected.length) { selected.pop(); update(); }
+});
 renderChips();
