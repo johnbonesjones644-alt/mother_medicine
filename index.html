@@ -18,8 +18,13 @@
   </header>
   <main>
     <form id="search-form" role="search">
-      <label for="search">Symptom</label>
-      <input id="search" type="search" placeholder="e.g. headache, nausea, heartburn" autocomplete="off">
+      <label for="search">Describe what you are feeling</label>
+      <div id="search-box" class="search-box">
+        <span id="selected" class="chips"></span>
+        <input id="search" type="search" placeholder="e.g. headache, nausea, heartburn" autocomplete="off">
+      </div>
+      <p class="hint">Or pick common symptoms:</p>
+      <div id="suggestions" class="chips" aria-label="Common symptoms"></div>
     </form>
     <div id="results" aria-live="polite"></div>
   </main>

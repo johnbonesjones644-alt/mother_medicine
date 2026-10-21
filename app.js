@@ -20,14 +20,7 @@ function list(items) {
   return ul;
 }
 
-function render(query) {
-  results.replaceChildren();
-  if (!query.trim()) return;
-  const found = SYMPTOMS.filter(s => matches(s, query));
-  if (!found.length) {
-    results.appendChild(el("p", "No results found. Please speak with your doctor or midwife about this symptom."));
-    return;
-  }
+function render(_unused, found) {
   found.forEach(s => {
     const card = el("section", null, "card");
     card.appendChild(el("h2", s.name));
@@ -47,5 +40,88 @@ function render(query) {
   });
 }
 
-document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); render(searchInput.value); });
-searchInput.addEventListener("input", () => render(searchInput.value));
+const COMMON = ["Headache", "Nausea", "Bloating", "Belly pain", "Heartburn", "Back pain", "Fatigue", "Constipation", "Dizziness", "Leg cramps"];
+const selected = [];
+const selectedEl = document.getElementById("selected");
+const suggestionsEl = document.getElementById("suggestions");
+let searchSeq = 0;
+
+function renderChips() {
+  selectedEl.replaceChildren();
+  selected.forEach(name => {
+    const chip = el("span", null, "chip selected");
+    chip.appendChild(el("span", name));
+    const x = el("button", "\u00d7", "x");
+    x.type = "button";
+    x.setAttribute("aria-label", "Remove " + name);
+    x.addEventListener("click", () => { selected.splice(selected.indexOf(name), 1); update(); });
+    chip.appendChild(x);
+    selectedEl.appendChild(chip);
+  });
+  suggestionsEl.replaceChildren();
+  COMMON.filter(n => !selected.includes(n)).forEach(name => {
+    const b = el("button", name, "chip");
+    b.type = "button";
+    b.addEventListener("click", () => { selected.push(name); update(); });
+    suggestionsEl.appendChild(b);
+  });
+}
+
+function terms() {
+  const t = searchInput.value.trim();
+  return t ? [...selected, t] : [...selected];
+}
+
+// MedlinePlus Web Service (NIH/NLM): free, no API key.
+async function medlineSearch(term) {
+  const url = "https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=" + encodeURIComponent(term);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("MedlinePlus request failed");
+  const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
+  return [...doc.querySelectorAll("document")].map(d => {
+    const get = n => { const c = [...d.querySelectorAll("content")].find(x => x.getAttribute("name") === n); return c ? c.textContent.replace(/<[^>]+>/g, "") : ""; };
+    return { title: get("title"), summary: get("FullSummary") || get("snippet"), url: d.getAttribute("url") };
+  }).filter(r => /^https:\/\/medlineplus\.gov\//.test(r.url));
+}
+
+async function renderMedline(list_, seq) {
+  const box = el("section", null, "card medline");
+  box.appendChild(el("h2", "More information from MedlinePlus"));
+  const status = el("p", "Loading\u2026");
+  box.appendChild(status);
+  results.appendChild(box);
+  try {
+    const found = (await Promise.all(list_.map(medlineSearch))).flat();
+    if (seq !== searchSeq) return;
+    status.remove();
+    if (!found.length) { box.appendChild(el("p", "No additional articles found.")); return; }
+    const seen = new Set();
+    found.filter(r => !seen.has(r.url) && seen.add(r.url)).forEach(r => {
+      const a = el("a", r.title); a.href = r.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      const h = el("h3"); h.appendChild(a);
+      box.appendChild(h);
+      if (r.summary) box.appendChild(el("p", r.summary.length > 300 ? r.summary.slice(0, 300) + "\u2026" : r.summary));
+    });
+    box.appendChild(el("p", "Source: MedlinePlus, U.S. National Library of Medicine.", "note"));
+  } catch (err) {
+    if (seq === searchSeq) status.textContent = "Could not load MedlinePlus results right now.";
+  }
+}
+
+let timer;
+function update() {
+  renderChips();
+  const all = terms();
+  const seq = ++searchSeq;
+  results.replaceChildren();
+  if (!all.length) return;
+  const found = SYMPTOMS.filter(s => all.some(t => matches(s, t)));
+  if (!found.length) results.appendChild(el("p", "No curated results found. Please speak with your doctor or midwife about this symptom."));
+  render(null, found);
+  clearTimeout(timer);
+  timer = setTimeout(() => renderMedline(all, seq), 400);
+}
+
+document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); update(); });
+searchInput.addEventListener("input", update);
+renderChips();
