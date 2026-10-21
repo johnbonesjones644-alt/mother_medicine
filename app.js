@@ -118,30 +118,13 @@ function renderMedline(list_) {
   const box = el("section", null, "card medline");
   box.appendChild(el("h2", "More information from MedlinePlus"));
   const body = el("div");
-  body.appendChild(el("p", "Loading\u2026"));
+  body.appendChild(el("p", "Searching MedlinePlus for information about your symptoms\u2026"));
   box.appendChild(body);
   results.appendChild(box);
   const seq = ++medSeq;
-  const term = list_.join(" ") + " pregnancy";
-  const link = "https://medlineplus.gov/search/?query=" + encodeURIComponent(term);
-  const fallback = () => {
+  const showStatus = message => {
     body.replaceChildren();
-    const p = el("p", "Read more on ");
-    const a = el("a", "MedlinePlus (U.S. National Library of Medicine)");
-    a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
-    p.appendChild(a);
-    body.appendChild(p);
-    if (list_.length > 1) {
-      const ul = el("ul");
-      list_.forEach(s => {
-        const li = el("li");
-        const l = el("a", s + " in pregnancy");
-        l.href = "https://medlineplus.gov/search/?query=" + encodeURIComponent(s + " pregnancy");
-        l.target = "_blank"; l.rel = "noopener noreferrer";
-        li.appendChild(l); ul.appendChild(li);
-      });
-      body.appendChild(ul);
-    }
+    body.appendChild(el("p", message));
   };
   const query = t => fetch("https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=" + encodeURIComponent(t))
     .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
@@ -152,7 +135,6 @@ function renderMedline(list_) {
     .catch(() => null));
   Promise.all(perTerm).then(groups => {
     if (seq !== medSeq) return;
-    if (groups.every(g => g === null)) return fallback();
     const seen = new Set();
     const docs = [];
     for (let i = 0; i < 3; i++) groups.forEach(g => {
@@ -161,26 +143,23 @@ function renderMedline(list_) {
         if (!seen.has(u)) { seen.add(u); docs.push(g[i]); }
       }
     });
+    if (!docs.length) {
+      return showStatus(groups.every(g => g === null)
+        ? "MedlinePlus could not be reached right now. Please try again later."
+        : "No MedlinePlus articles were found for these symptoms.");
+    }
     body.replaceChildren();
     docs.slice(0, 8).forEach(d => {
-      const url = d.getAttribute("url") || "";
-      if (!/^https:\/\/medlineplus\.gov\//.test(url)) return;
       const item = el("div", null, "med-item");
-      const h = el("h3");
-      const a = el("a", plain(xmlText(d, "title")));
-      a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
-      h.appendChild(a);
-      item.appendChild(h);
+      item.appendChild(el("h3", plain(xmlText(d, "title"))));
       const sum = plain(xmlText(d, "FullSummary"));
       if (sum) item.appendChild(el("p", sum.length > 400 ? sum.slice(0, 400) + "\u2026" : sum));
       body.appendChild(item);
     });
-    if (!body.children.length) return fallback();
-    const more = el("p", "Source: ");
-    const a = el("a", "MedlinePlus (NIH/NLM)");
-    a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
-    more.appendChild(a);
-    body.appendChild(more);
+    if (groups.some(g => g === null)) {
+      body.appendChild(el("p", "Some symptom searches could not be completed."));
+    }
+    body.appendChild(el("p", "Source: MedlinePlus (U.S. National Library of Medicine)."));
   });
 }
 
