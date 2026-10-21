@@ -6,7 +6,7 @@
   <meta name="description" content="Search common pregnancy symptoms and see general, pregnancy-friendly information to discuss with your doctor or midwife. Not medical advice.">
   <meta property="og:title" content="Mothers Medicine – Pregnancy Symptom Search">
   <meta property="og:description" content="General information on common pregnancy symptoms. Not medical advice.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://wsearch.nlm.nih.gov; base-uri 'none'; form-action 'none'">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='13'%3E%F0%9F%A4%B0%3C/text%3E%3C/svg%3E">
   <title>Mothers Medicine – Pregnancy-Friendly Symptom Search</title>
   <link rel="stylesheet" href="styles.css">
@@ -44,13 +44,10 @@
           <span id="selected" class="chips"></span>
           <input id="search" type="search" placeholder="e.g. headache, nausea, heartburn" autocomplete="off">
         </div>
-        <label for="trimester">Trimester (optional)</label>
-        <select id="trimester">
-          <option value="0">Any trimester</option>
-          <option value="1">First (weeks 1-13)</option>
-          <option value="2">Second (weeks 14-27)</option>
-          <option value="3">Third (weeks 28-40)</option>
-        </select>
+        <div class="tri-group" role="group" aria-labelledby="tri-label">
+          <span id="tri-label" class="tri-label">Trimester (optional)</span>
+          <div id="trimester" class="chips"></div>
+        </div>
         <p class="hint">Or explore a common symptom</p>
         <div id="suggestions" class="chips" aria-label="Common symptoms"></div>
       </form>
@@ -67,7 +64,7 @@
           herbal remedy without first speaking to your doctor or midwife. Never ignore professional advice because of
           something you read here. This site is not for emergencies and does not create a doctor–patient relationship.</p>
         <h2>Privacy</h2>
-        <p>We do not store, log or sell your searches, and the site uses no cookies or analytics. Your searches stay in your browser. Links to MedlinePlus open an external site with its own privacy policy.</p>
+        <p>We do not store, log or sell your searches, and the site uses no cookies or analytics. Your searches stay in your browser. Your search terms are sent to MedlinePlus (NIH/NLM) to fetch related articles; its own privacy policy applies to links you open.</p>
         <h2>Terms of use</h2>
         <p>Use of this site is at your own risk. To the fullest extent permitted by law, the site owners are not liable for any loss or harm arising from use of, or reliance on, this information. Content is provided “as is” without warranties.</p>
         <h2>Sources and review</h2>
