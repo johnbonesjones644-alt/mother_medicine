@@ -67,14 +67,20 @@ function renderChips() {
   });
 }
 
+function splitTerms(v) {
+  return v.split(/[,\s]+/).filter(Boolean);
+}
+
 function terms() {
-  const t = searchInput.value.trim();
-  return t && !selected.some(n => n.toLowerCase() === t.toLowerCase()) ? [...selected, t] : [...selected];
+  const out = [...selected];
+  splitTerms(searchInput.value).forEach(t => { if (!out.some(n => n.toLowerCase() === t.toLowerCase())) out.push(t); });
+  return out;
 }
 
 function addTyped() {
-  const t = searchInput.value.trim().replace(/,+$/, "").trim();
-  if (t && !selected.some(n => n.toLowerCase() === t.toLowerCase())) selected.push(t);
+  splitTerms(searchInput.value).forEach(t => {
+    if (!selected.some(n => n.toLowerCase() === t.toLowerCase())) selected.push(t);
+  });
   searchInput.value = "";
   update();
 }
@@ -151,7 +157,7 @@ function update() {
 }
 
 document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); addTyped(); });
-searchInput.addEventListener("input", () => { if (searchInput.value.endsWith(",")) addTyped(); else update(); });
+searchInput.addEventListener("input", () => { if (/[,\s]$/.test(searchInput.value)) addTyped(); else update(); });
 searchInput.addEventListener("keydown", e => {
   if (e.key === "Backspace" && !searchInput.value && selected.length) { selected.pop(); update(); }
 });
