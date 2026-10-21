@@ -131,6 +131,17 @@ function renderMedline(list_) {
     a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
     p.appendChild(a);
     body.appendChild(p);
+    if (list_.length > 1) {
+      const ul = el("ul");
+      list_.forEach(s => {
+        const li = el("li");
+        const l = el("a", s + " in pregnancy");
+        l.href = "https://medlineplus.gov/search/?query=" + encodeURIComponent(s + " pregnancy");
+        l.target = "_blank"; l.rel = "noopener noreferrer";
+        li.appendChild(l); ul.appendChild(li);
+      });
+      body.appendChild(ul);
+    }
   };
   const query = t => fetch("https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=" + encodeURIComponent(t))
     .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
