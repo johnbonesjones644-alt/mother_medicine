@@ -11,6 +11,7 @@ function el(tag, text, cls) {
 function matches(symptom, query) {
   const q = query.trim().toLowerCase();
   if (!q) return false;
+  if (SYNONYMS[q] === symptom.name) return true;
   return [symptom.name, ...symptom.keywords].some(t => t.toLowerCase().includes(q));
 }
 
@@ -24,8 +25,16 @@ function render(_unused, found) {
   found.forEach(s => {
     const card = el("section", null, "card");
     card.appendChild(el("h2", s.name));
+    if (trimester && !TRIMESTERS[s.name]) card.appendChild(el("p", "Can occur in any trimester.", "tri-note"));
+    if (s.urgent) {
+      const u = el("div", null, "urgent");
+      u.setAttribute("role", "alert");
+      u.appendChild(el("strong", "Seek care promptly if: "));
+      u.appendChild(document.createTextNode(s.seeDoctor + " If severe, call your emergency number."));
+      card.appendChild(u);
+    }
     if (s.about) card.appendChild(el("p", s.about, "about"));
-    card.appendChild(el("h3", "Options commonly considered pregnancy-friendly"));
+    card.appendChild(el("h3", "Options often discussed with healthcare providers"));
     const ul = el("ul");
     s.treatments.forEach(t => {
       const li = el("li", t.name);
@@ -45,16 +54,16 @@ function render(_unused, found) {
     const w = el("div", null, "warn");
     w.appendChild(el("p", "Contact your doctor promptly if: " + s.seeDoctor));
     card.appendChild(w);
-    card.appendChild(el("p", "Not medical advice. Consult your doctor before taking any medication or treatment.", "note"));
+    card.appendChild(el("p", "Not medical advice. Always check with your doctor, midwife or pharmacist before taking anything.", "note"));
     results.appendChild(card);
   });
 }
 
-const COMMON = ["Nausea", "Fatigue", "Frequent urination", "Breast tenderness", "Heartburn", "Constipation", "Bloating", "Back pain", "Headache", "Dizziness", "Leg cramps", "Food cravings", "Food aversions", "Mood swings", "Swollen feet", "Trouble sleeping", "Shortness of breath", "Belly pain", "Spotting", "Stretch marks", "Varicose veins", "Hemorrhoids"];
+const COMMON = SYMPTOMS.slice(0, 24).map(s => s.name);
 const selected = [];
+let trimester = 0;
 const selectedEl = document.getElementById("selected");
 const suggestionsEl = document.getElementById("suggestions");
-let searchSeq = 0;
 
 function renderChips() {
   selectedEl.replaceChildren();
@@ -78,7 +87,7 @@ function renderChips() {
 }
 
 function splitTerms(v) {
-  return v.split(/[,\s]+/).filter(Boolean);
+  return v.split(/,/).map(x => x.trim()).filter(Boolean);
 }
 
 function terms() {
@@ -95,80 +104,76 @@ function addTyped() {
   update();
 }
 
-// MedlinePlus Web Service (NIH/NLM): free, no API key.
-// The endpoint does not reliably send CORS headers, so browsers may block a direct call;
-// fall back to a public CORS proxy if the direct request fails.
-const MEDLINE = "https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=";
-async function fetchMedlineXml(term) {
-  const url = MEDLINE + encodeURIComponent(term);
-  const attempts = [url, "https://api.allorigins.win/raw?url=" + encodeURIComponent(url)];
-  let lastErr;
-  for (const u of attempts) {
-    try {
-      const res = await fetch(u);
-      if (!res.ok) throw new Error("MedlinePlus request failed: " + res.status);
-      return await res.text();
-    } catch (err) { lastErr = err; }
-  }
-  throw lastErr;
-}
-async function medlineSearch(term) {
-  const doc = new DOMParser().parseFromString(await fetchMedlineXml(term), "text/xml");
-  return [...doc.querySelectorAll("document")].map(d => {
-    const get = n => { const c = [...d.querySelectorAll("content")].find(x => x.getAttribute("name") === n); return c ? c.textContent.replace(/<[^>]+>/g, "") : ""; };
-    return { title: get("title"), summary: get("FullSummary") || get("snippet"), url: d.getAttribute("url") };
-  }).filter(r => /^https:\/\/medlineplus\.gov\//.test(r.url));
-}
-
-async function renderMedline(list_, seq) {
+function renderMedline(list_) {
   const box = el("section", null, "card medline");
-  box.appendChild(el("h2", "More information from MedlinePlus"));
-  const status = el("p", "Loading\u2026");
-  box.appendChild(status);
+  box.appendChild(el("h2", "More information"));
+  const p = el("p", "Read more on ");
+  const a = el("a", "MedlinePlus (U.S. National Library of Medicine)");
+  a.href = "https://medlineplus.gov/search/?query=" + encodeURIComponent(list_.join(" ") + " pregnancy");
+  a.target = "_blank"; a.rel = "noopener noreferrer";
+  p.appendChild(a);
+  p.appendChild(document.createTextNode(". This opens an external site; your search terms are sent to it only if you click."));
+  box.appendChild(p);
   results.appendChild(box);
-  try {
-    const settled = await Promise.allSettled(list_.map(medlineSearch));
-    if (settled.every(r => r.status === "rejected")) throw settled[0].reason;
-    const found = settled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
-    if (seq !== searchSeq) return;
-    status.remove();
-    if (!found.length) { box.appendChild(el("p", "No additional articles found.")); return; }
-    const seen = new Set();
-    found.filter(r => !seen.has(r.url) && seen.add(r.url)).forEach(r => {
-      const a = el("a", r.title); a.href = r.url; a.target = "_blank"; a.rel = "noopener noreferrer";
-      const h = el("h3"); h.appendChild(a);
-      box.appendChild(h);
-      if (r.summary) box.appendChild(el("p", r.summary.length > 300 ? r.summary.slice(0, 300) + "\u2026" : r.summary));
-    });
-    box.appendChild(el("p", "Source: MedlinePlus, U.S. National Library of Medicine.", "note"));
-  } catch (err) {
-    if (seq === searchSeq) {
-      status.textContent = "Could not load MedlinePlus results right now. ";
-      const a = el("a", "Search MedlinePlus directly");
-      a.href = "https://medlineplus.gov/search/?query=" + encodeURIComponent(list_.join(" "));
-      a.target = "_blank"; a.rel = "noopener noreferrer";
-      status.appendChild(a);
-    }
-  }
 }
 
-let timer;
+function syncUrl(all) {
+  const q = all.join(",");
+  try { history.replaceState(null, "", q ? "?q=" + encodeURIComponent(q) : location.pathname); } catch (e) {}
+}
+
+function buildPrompt(all) {
+  const tri = trimester ? "I am in my " + ["", "first", "second", "third"][trimester] + " trimester of pregnancy." : "I am pregnant (trimester not specified).";
+  return [
+    tri,
+    "My symptoms: " + all.join(", ") + ".",
+    "Please explain in plain language: (1) common causes, (2) self-care options generally considered safe in pregnancy, (3) which medicines or remedies to avoid, and (4) warning signs that need urgent medical care.",
+    "Cite reputable sources (e.g. NHS, ACOG, MotherToBaby), say if anything is uncertain, and remind me to confirm with my doctor or midwife. This is not a substitute for medical advice."
+  ].join("\n\n");
+}
+
+function renderPromptButton(all) {
+  const box = el("section", null, "card ai-prompt");
+  box.appendChild(el("h2", "Ask an AI assistant"));
+  box.appendChild(el("p", "Copy this prompt and paste it into your preferred AI assistant. AI can be wrong; always confirm with your doctor or midwife. Don\u2019t include your name or other personal details."));
+  const ta = el("textarea");
+  ta.readOnly = true; ta.rows = 9; ta.value = buildPrompt(all);
+  ta.setAttribute("aria-label", "Generated AI prompt");
+  const btn = el("button", "Copy prompt", "copy-btn");
+  btn.setAttribute("aria-live", "polite");
+  btn.type = "button";
+  btn.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(ta.value); btn.textContent = "Copied!"; }
+    catch (e) { ta.select(); btn.textContent = "Press Ctrl/Cmd+C to copy"; }
+    setTimeout(() => { btn.textContent = "Copy prompt"; }, 2500);
+  });
+  box.appendChild(ta); box.appendChild(btn);
+  results.appendChild(box);
+}
+
 function update() {
   renderChips();
   const all = terms();
-  const seq = ++searchSeq;
   results.replaceChildren();
+  syncUrl(all);
   if (!all.length) return;
-  const found = SYMPTOMS.filter(s => all.some(t => matches(s, t)));
-  if (!found.length) results.appendChild(el("p", "No curated results found. Please speak with your doctor or midwife about this symptom."));
+  const matched = SYMPTOMS.filter(s => all.some(t => matches(s, t)));
+  const found = trimester ? matched.filter(s => s.urgent || !TRIMESTERS[s.name] || TRIMESTERS[s.name].includes(trimester)) : matched;
+  const hidden = matched.length - found.length;
+  if (trimester) results.appendChild(el("p", TRIMESTER_NOTES[trimester], "tri-note"));
+  if (!found.length) results.appendChild(el("p", "No curated results found. Please speak with your doctor or midwife about this symptom. If you have heavy bleeding, severe pain, or reduced baby movement, call your emergency number or maternity unit now.", "no-match"));
   render(null, found);
-  clearTimeout(timer);
-  timer = setTimeout(() => renderMedline(all, seq), 400);
+  if (hidden) results.appendChild(el("p", hidden + " symptom(s) not usually seen in this trimester are hidden. Choose \u201cAny trimester\u201d to see them.", "tri-note"));
+  renderMedline(all);
+  renderPromptButton(all);
 }
 
 document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); addTyped(); });
-searchInput.addEventListener("input", () => { if (/[,\s]$/.test(searchInput.value)) addTyped(); else update(); });
+searchInput.addEventListener("input", () => { if (/,$/.test(searchInput.value)) addTyped(); else update(); });
 searchInput.addEventListener("keydown", e => {
   if (e.key === "Backspace" && !searchInput.value && selected.length) { selected.pop(); update(); }
 });
-renderChips();
+document.getElementById("trimester").addEventListener("change", e => { trimester = Number(e.target.value); update(); });
+const initial = new URLSearchParams(location.search).get("q");
+if (initial) splitTerms(initial).slice(0, 10).forEach(t => selected.push(t.slice(0, 80)));
+update();

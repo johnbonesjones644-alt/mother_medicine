@@ -32,9 +32,9 @@ The site is plain static HTML/CSS/JavaScript (`index.html`, `styles.css`, `app.j
 
 - `index.html` – page markup
 - `styles.css` – styling
-- `app.js` – search logic and rendering
+- `app.js` – search logic and rendering (no network calls)
 - `symptom_data.js` – symptom and treatment data
 
 ## API research
 
-See `api_research.txt` for public medical/symptom APIs that could extend the site.
+See `api_research.txt` for public medical APIs. The site currently makes no API calls and only links out to MedlinePlus.
