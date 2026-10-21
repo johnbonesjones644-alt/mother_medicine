@@ -104,17 +104,63 @@ function addTyped() {
   update();
 }
 
+let medSeq = 0;
+function xmlText(doc, name) {
+  const n = [...doc.getElementsByTagName("content")].find(c => c.getAttribute("name") === name);
+  return n ? n.textContent : "";
+}
+
+function plain(html) {
+  return new DOMParser().parseFromString(html, "text/html").body.textContent.replace(/\s+/g, " ").trim();
+}
+
 function renderMedline(list_) {
   const box = el("section", null, "card medline");
-  box.appendChild(el("h2", "More information"));
-  const p = el("p", "Read more on ");
-  const a = el("a", "MedlinePlus (U.S. National Library of Medicine)");
-  a.href = "https://medlineplus.gov/search/?query=" + encodeURIComponent(list_.join(" ") + " pregnancy");
-  a.target = "_blank"; a.rel = "noopener noreferrer";
-  p.appendChild(a);
-  p.appendChild(document.createTextNode(". This opens an external site; your search terms are sent to it only if you click."));
-  box.appendChild(p);
+  box.appendChild(el("h2", "More information from MedlinePlus"));
+  const body = el("div");
+  body.appendChild(el("p", "Loading\u2026"));
+  box.appendChild(body);
   results.appendChild(box);
+  const seq = ++medSeq;
+  const term = list_.join(" ") + " pregnancy";
+  const link = "https://medlineplus.gov/search/?query=" + encodeURIComponent(term);
+  const fallback = () => {
+    body.replaceChildren();
+    const p = el("p", "Read more on ");
+    const a = el("a", "MedlinePlus (U.S. National Library of Medicine)");
+    a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
+    p.appendChild(a);
+    body.appendChild(p);
+  };
+  fetch("https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=5&term=" + encodeURIComponent(term))
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(t => {
+      if (seq !== medSeq) return;
+      const doc = new DOMParser().parseFromString(t, "text/xml");
+      const docs = [...doc.getElementsByTagName("document")];
+      if (!docs.length) return fallback();
+      body.replaceChildren();
+      docs.forEach(d => {
+        const url = d.getAttribute("url") || "";
+        if (!/^https:\/\/medlineplus\.gov\//.test(url)) return;
+        const item = el("div", null, "med-item");
+        const h = el("h3");
+        const a = el("a", plain(xmlText(d, "title")));
+        a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+        h.appendChild(a);
+        item.appendChild(h);
+        const sum = plain(xmlText(d, "FullSummary"));
+        if (sum) item.appendChild(el("p", sum.length > 400 ? sum.slice(0, 400) + "\u2026" : sum));
+        body.appendChild(item);
+      });
+      if (!body.children.length) return fallback();
+      const more = el("p", "Source: ");
+      const a = el("a", "MedlinePlus (NIH/NLM)");
+      a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
+      more.appendChild(a);
+      body.appendChild(more);
+    })
+    .catch(() => { if (seq === medSeq) fallback(); });
 }
 
 function syncUrl(all) {
@@ -153,6 +199,7 @@ function renderPromptButton(all) {
 
 function update() {
   renderChips();
+  renderTrimester();
   const all = terms();
   results.replaceChildren();
   syncUrl(all);
@@ -163,7 +210,7 @@ function update() {
   if (trimester) results.appendChild(el("p", TRIMESTER_NOTES[trimester], "tri-note"));
   if (!found.length) results.appendChild(el("p", "No curated results found. Please speak with your doctor or midwife about this symptom. If you have heavy bleeding, severe pain, or reduced baby movement, call your emergency number or maternity unit now.", "no-match"));
   render(null, found);
-  if (hidden) results.appendChild(el("p", hidden + " symptom(s) not usually seen in this trimester are hidden. Choose \u201cAny trimester\u201d to see them.", "tri-note"));
+  if (hidden) results.appendChild(el("p", hidden + " symptom(s) not usually seen in this trimester are hidden. Clear the trimester selection to see them.", "tri-note"));
   renderMedline(all);
   renderPromptButton(all);
 }
@@ -173,7 +220,29 @@ searchInput.addEventListener("input", () => { if (/,$/.test(searchInput.value)) 
 searchInput.addEventListener("keydown", e => {
   if (e.key === "Backspace" && !searchInput.value && selected.length) { selected.pop(); update(); }
 });
-document.getElementById("trimester").addEventListener("change", e => { trimester = Number(e.target.value); update(); });
+const TRI_LABELS = ["", "First (weeks 1-13)", "Second (weeks 14-27)", "Third (weeks 28-40)"];
+const triEl = document.getElementById("trimester");
+function renderTrimester() {
+  triEl.replaceChildren();
+  [1, 2, 3].forEach(n => {
+    const on = trimester === n;
+    const chip = el(on ? "span" : "button", null, on ? "chip selected" : "chip");
+    if (on) {
+      chip.appendChild(el("span", TRI_LABELS[n]));
+      const x = el("button", "\u00d7", "x");
+      x.type = "button";
+      x.setAttribute("aria-label", "Clear " + TRI_LABELS[n] + " trimester");
+      x.addEventListener("click", () => { trimester = 0; update(); });
+      chip.appendChild(x);
+    } else {
+      chip.type = "button";
+      chip.textContent = TRI_LABELS[n];
+      chip.setAttribute("aria-pressed", "false");
+      chip.addEventListener("click", () => { trimester = n; update(); });
+    }
+    triEl.appendChild(chip);
+  });
+}
 const initial = new URLSearchParams(location.search).get("q");
 if (initial) splitTerms(initial).slice(0, 10).forEach(t => selected.push(t.slice(0, 80)));
 update();

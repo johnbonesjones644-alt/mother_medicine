@@ -542,3 +542,15 @@ select,
   color: var(--muted);
   font-size: .9rem;
 }
+
+.tri-label {
+  display: block;
+  margin: 1.25rem 0 .5rem;
+  color: var(--muted);
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.med-item h3 {
+  margin: .75rem 0 .25rem;
+}
