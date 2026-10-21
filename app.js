@@ -24,8 +24,18 @@ function render(_unused, found) {
   found.forEach(s => {
     const card = el("section", null, "card");
     card.appendChild(el("h2", s.name));
+    if (s.about) card.appendChild(el("p", s.about, "about"));
     card.appendChild(el("h3", "Options commonly considered pregnancy-friendly"));
-    card.appendChild(list(s.treatments));
+    const ul = el("ul");
+    s.treatments.forEach(t => {
+      const li = el("li", t.name);
+      if (t.why) {
+        li.appendChild(el("br"));
+        li.appendChild(el("small", "Why it helps: " + t.why, "why"));
+      }
+      ul.appendChild(li);
+    });
+    card.appendChild(ul);
     if (s.avoid.length) {
       const a = el("div", null, "avoid");
       a.appendChild(el("h3", "Generally avoid"));

@@ -44,7 +44,7 @@ NOT AVAILABLE
 - WebMD has no public API. Scraping it violates its terms.
 
 RECOMMENDATION FOR THIS SITE (pregnancy focus)
-- Keep curated data in data.js for vetted pregnancy-safe treatments.
+- Keep curated data in symptom_data.js for vetted pregnancy-safe treatments.
 - Add MedlinePlus Web Service (free, no key) for symptom -> article lookup.
 - Use openFDA / DailyMed to display pregnancy sections of drug labels.
 - Consider Infermedica or NHS API if a richer symptom checker is needed.
