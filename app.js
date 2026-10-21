@@ -131,36 +131,57 @@ function renderMedline(list_) {
     a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
     p.appendChild(a);
     body.appendChild(p);
-  };
-  fetch("https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=5&term=" + encodeURIComponent(term))
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-    .then(t => {
-      if (seq !== medSeq) return;
-      const doc = new DOMParser().parseFromString(t, "text/xml");
-      const docs = [...doc.getElementsByTagName("document")];
-      if (!docs.length) return fallback();
-      body.replaceChildren();
-      docs.forEach(d => {
-        const url = d.getAttribute("url") || "";
-        if (!/^https:\/\/medlineplus\.gov\//.test(url)) return;
-        const item = el("div", null, "med-item");
-        const h = el("h3");
-        const a = el("a", plain(xmlText(d, "title")));
-        a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
-        h.appendChild(a);
-        item.appendChild(h);
-        const sum = plain(xmlText(d, "FullSummary"));
-        if (sum) item.appendChild(el("p", sum.length > 400 ? sum.slice(0, 400) + "\u2026" : sum));
-        body.appendChild(item);
+    if (list_.length > 1) {
+      const ul = el("ul");
+      list_.forEach(s => {
+        const li = el("li");
+        const l = el("a", s + " in pregnancy");
+        l.href = "https://medlineplus.gov/search/?query=" + encodeURIComponent(s + " pregnancy");
+        l.target = "_blank"; l.rel = "noopener noreferrer";
+        li.appendChild(l); ul.appendChild(li);
       });
-      if (!body.children.length) return fallback();
-      const more = el("p", "Source: ");
-      const a = el("a", "MedlinePlus (NIH/NLM)");
-      a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
-      more.appendChild(a);
-      body.appendChild(more);
-    })
-    .catch(() => { if (seq === medSeq) fallback(); });
+      body.appendChild(ul);
+    }
+  };
+  const query = t => fetch("https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=" + encodeURIComponent(t))
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(x => [...new DOMParser().parseFromString(x, "text/xml").getElementsByTagName("document")]);
+  // Search each symptom separately (a combined AND query rarely matches), with and without "pregnancy"
+  const perTerm = list_.map(s => query(s + " pregnancy")
+    .then(d => d.length ? d : query(s))
+    .catch(() => null));
+  Promise.all(perTerm).then(groups => {
+    if (seq !== medSeq) return;
+    if (groups.every(g => g === null)) return fallback();
+    const seen = new Set();
+    const docs = [];
+    for (let i = 0; i < 3; i++) groups.forEach(g => {
+      if (g && g[i]) {
+        const u = g[i].getAttribute("url") || "";
+        if (!seen.has(u)) { seen.add(u); docs.push(g[i]); }
+      }
+    });
+    body.replaceChildren();
+    docs.slice(0, 8).forEach(d => {
+      const url = d.getAttribute("url") || "";
+      if (!/^https:\/\/medlineplus\.gov\//.test(url)) return;
+      const item = el("div", null, "med-item");
+      const h = el("h3");
+      const a = el("a", plain(xmlText(d, "title")));
+      a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      h.appendChild(a);
+      item.appendChild(h);
+      const sum = plain(xmlText(d, "FullSummary"));
+      if (sum) item.appendChild(el("p", sum.length > 400 ? sum.slice(0, 400) + "\u2026" : sum));
+      body.appendChild(item);
+    });
+    if (!body.children.length) return fallback();
+    const more = el("p", "Source: ");
+    const a = el("a", "MedlinePlus (NIH/NLM)");
+    a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
+    more.appendChild(a);
+    body.appendChild(more);
+  });
 }
 
 function syncUrl(all) {
