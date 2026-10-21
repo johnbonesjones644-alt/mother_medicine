@@ -126,9 +126,26 @@ function renderMedline(list_) {
     body.replaceChildren();
     body.appendChild(el("p", message));
   };
-  const query = t => fetch("https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=" + encodeURIComponent(t))
+  const base = t => "https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&retmax=3&term=" + encodeURIComponent(t);
+  // The NLM endpoint may not send CORS headers to browsers, so fall back to public CORS proxies
+  const routes = [
+    u => u,
+    u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+    u => "https://corsproxy.io/?" + encodeURIComponent(u)
+  ];
+  const fetchXml = (u, i = 0) => fetch(routes[i](u))
     .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-    .then(x => [...new DOMParser().parseFromString(x, "text/xml").getElementsByTagName("document")]);
+    .then(x => {
+      const doc = new DOMParser().parseFromString(x, "text/xml");
+      if (doc.getElementsByTagName("parsererror").length || !doc.getElementsByTagName("nlmSearchResult").length) throw new Error("bad response");
+      return doc;
+    })
+    .catch(err => {
+      if (i + 1 < routes.length) return fetchXml(u, i + 1);
+      console.error("MedlinePlus request failed:", err);
+      throw err;
+    });
+  const query = t => fetchXml(base(t)).then(doc => [...doc.getElementsByTagName("document")]);
   // Search each symptom separately (a combined AND query rarely matches), with and without "pregnancy"
   const perTerm = list_.map(s => query(s + " pregnancy")
     .then(d => d.length ? d : query(s))
@@ -144,9 +161,15 @@ function renderMedline(list_) {
       }
     });
     if (!docs.length) {
-      return showStatus(groups.every(g => g === null)
+      const unreachable = groups.every(g => g === null);
+      showStatus(unreachable
         ? "MedlinePlus could not be reached right now. Please try again later."
         : "No MedlinePlus articles were found for these symptoms.");
+      const a = el("a", "Search MedlinePlus directly");
+      a.href = "https://medlineplus.gov/search/?query=" + encodeURIComponent(list_.join(" ") + " pregnancy");
+      a.target = "_blank"; a.rel = "noopener noreferrer";
+      body.appendChild(a);
+      return;
     }
     body.replaceChildren();
     docs.slice(0, 8).forEach(d => {
