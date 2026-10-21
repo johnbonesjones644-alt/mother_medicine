@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mothers Medicine – Pregnancy-Friendly Symptom Search</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="banner" role="alert">
+    <strong>Not medical advice.</strong> This site is for general information only. Always consult your doctor,
+    midwife, or pharmacist before taking any medication or treatment during pregnancy.
+    If you think you have an emergency, call your local emergency number.
+  </div>
+  <header>
+    <h1>Mothers Medicine</h1>
+    <p>Search a symptom to see treatments commonly considered pregnancy-friendly.</p>
+  </header>
+  <main>
+    <form id="search-form" role="search">
+      <label for="search">Symptom</label>
+      <input id="search" type="search" placeholder="e.g. headache, nausea, heartburn" autocomplete="off">
+    </form>
+    <div id="results" aria-live="polite"></div>
+  </main>
+  <footer>
+    <h2>Important disclaimer</h2>
+    <p>Mothers Medicine does not provide medical advice, diagnosis, or treatment. Information may be incomplete or
+      out of date, and every pregnancy is different. Do not start, stop, or change any medicine, supplement, or
+      herbal remedy without first speaking to your doctor or midwife. Never ignore professional advice because of
+      something you read here.</p>
+  </footer>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
