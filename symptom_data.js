@@ -651,3 +651,21 @@ const SYNONYMS = {
   "baby not moving": "Reduced baby movement", "no movement": "Reduced baby movement", "kicks": "Reduced baby movement",
   "blood pressure": "High blood pressure / pre-eclampsia signs", "sad": "Depression", "worried": "Anxiety about labour and birth"
 };
+
+// Trimesters (1 = weeks 1-13, 2 = weeks 14-27, 3 = weeks 28-40) in which a symptom is typically seen.
+// Symptoms not listed here can occur in any trimester. General guidance only.
+const TRIMESTERS = {
+  "Nausea / morning sickness": [1, 2], "Hyperemesis (severe vomiting)": [1, 2], "Breast tenderness": [1],
+  "Early pregnancy cramping": [1], "Excess saliva / metallic taste": [1, 2], "Frequent urination": [1, 3],
+  "Round ligament pain": [2, 3], "Leg cramps": [2, 3], "Restless legs": [2, 3], "Snoring and sleep apnea": [2, 3],
+  "Swollen feet": [2, 3], "Braxton Hicks contractions": [2, 3], "Stretch marks and itchy skin": [2, 3],
+  "Varicose veins and hemorrhoids": [2, 3], "Carpal tunnel / tingling hands": [2, 3], "Reduced baby movement": [2, 3],
+  "High blood pressure / pre-eclampsia signs": [2, 3], "Gestational diabetes symptoms": [2, 3],
+  "Itchy palms and soles (cholestasis)": [2, 3], "Pelvic pressure and low pelvic pain": [3],
+  "Anxiety about labour and birth": [3], "Heartburn / indigestion": [2, 3], "Shortness of breath": [2, 3]
+};
+const TRIMESTER_NOTES = {
+  1: "First trimester (weeks 1-13): many medicines are most sensitive in early pregnancy, so check with your doctor or pharmacist before taking anything.",
+  2: "Second trimester (weeks 14-27): symptoms often ease, but check with your provider before starting any new medicine.",
+  3: "Third trimester (weeks 28-40): some medicines that are fine earlier are avoided late in pregnancy, so always check first."
+};

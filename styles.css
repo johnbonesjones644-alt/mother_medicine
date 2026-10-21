@@ -507,3 +507,38 @@ label {
 .no-match {
   font-weight: 600;
 }
+
+select,
+.ai-prompt textarea {
+  width: 100%;
+  margin-top: .35rem;
+  padding: .6rem .75rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+}
+
+.ai-prompt textarea {
+  resize: vertical;
+}
+
+.copy-btn {
+  margin-top: .75rem;
+  padding: .6rem 1.1rem;
+  border: 0;
+  border-radius: .5rem;
+  background: var(--green);
+  color: #fff;
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  background: var(--green-dark);
+}
+
+.tri-note {
+  color: var(--muted);
+  font-size: .9rem;
+}
