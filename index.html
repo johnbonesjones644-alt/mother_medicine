@@ -7,33 +7,51 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to search</a>
   <div class="banner" role="alert">
     <strong>Not medical advice.</strong> This site is for general information only. Always consult your doctor,
     midwife, or pharmacist before taking any medication or treatment during pregnancy.
     If you think you have an emergency, call your local emergency number.
   </div>
-  <header>
-    <h1>Mothers Medicine</h1>
-    <p>Search a symptom to see treatments commonly considered pregnancy-friendly.</p>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Pregnancy health, made clearer</p>
+      <h1>Mothers <span>Medicine</span></h1>
+      <p class="hero-copy">A calmer place to explore common symptoms and find information to discuss with your care team.</p>
+    </div>
   </header>
-  <main>
-    <form id="search-form" role="search">
-      <label for="search">Describe what you are feeling</label>
-      <div id="search-box" class="search-box">
-        <span id="selected" class="chips"></span>
-        <input id="search" type="search" placeholder="e.g. headache, nausea, heartburn" autocomplete="off">
+  <main id="main-content" class="page-content">
+    <section class="search-panel" aria-labelledby="search-title">
+      <div class="search-heading">
+        <span class="search-icon" aria-hidden="true"></span>
+        <div>
+          <h2 id="search-title">How are you feeling?</h2>
+          <p>Search a symptom to explore general information.</p>
+        </div>
       </div>
-      <p class="hint">Or pick common symptoms:</p>
-      <div id="suggestions" class="chips" aria-label="Common symptoms"></div>
-    </form>
-    <div id="results" aria-live="polite"></div>
+      <form id="search-form" role="search">
+        <label for="search">Describe what you are feeling</label>
+        <div id="search-box" class="search-box">
+          <span id="selected" class="chips"></span>
+          <input id="search" type="search" placeholder="e.g. headache, nausea, heartburn" autocomplete="off">
+        </div>
+        <p class="hint">Or explore a common symptom</p>
+        <div id="suggestions" class="chips" aria-label="Common symptoms"></div>
+      </form>
+    </section>
+    <div id="results" class="results" aria-live="polite"></div>
   </main>
-  <footer>
-    <h2>Important disclaimer</h2>
-    <p>Mothers Medicine does not provide medical advice, diagnosis, or treatment. Information may be incomplete or
-      out of date, and every pregnancy is different. Do not start, stop, or change any medicine, supplement, or
-      herbal remedy without first speaking to your doctor or midwife. Never ignore professional advice because of
-      something you read here.</p>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="footer-mark" aria-hidden="true">i</span>
+      <div>
+        <h2>Important disclaimer</h2>
+        <p>Mothers Medicine does not provide medical advice, diagnosis, or treatment. Information may be incomplete or
+          out of date, and every pregnancy is different. Do not start, stop, or change any medicine, supplement, or
+          herbal remedy without first speaking to your doctor or midwife. Never ignore professional advice because of
+          something you read here.</p>
+      </div>
+    </div>
   </footer>
   <script src="data.js"></script>
   <script src="app.js"></script>
