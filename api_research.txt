@@ -1,0 +1,52 @@
+API RESEARCH: public APIs for symptom-based medical information (WebMD-like)
+NOTE: Live web search was unavailable when this was written (search tool timed out),
+so this comes from general knowledge. Verify pricing, terms and availability before use.
+
+SYMPTOM CHECKER / DIAGNOSIS APIs
+1. Infermedica API - https://developer.infermedica.com
+   Symptom checker with triage and condition suggestions; supports pregnancy as a
+   risk factor. Free trial/developer tier; commercial licence required for production.
+2. ApiMedic (Priaid) / now "Symptom Checker API" via Medic - https://apimedic.com
+   Symptoms -> possible conditions. Free sandbox, paid live tier. Availability has
+   been inconsistent; confirm it is still offered.
+3. Endless Medical API - https://endlessmedical.com
+   Free research-oriented API: submit symptoms/features, get ranked conditions.
+   Not intended for clinical use.
+4. Isabel Healthcare API - https://www.isabelhealthcare.com
+   Clinical differential diagnosis. Commercial, contact sales.
+5. Ada Health API - https://ada.com
+   Partner-only, commercial.
+
+FREE GOVERNMENT / REFERENCE CONTENT APIs (search by term, return health info)
+6. MedlinePlus Web Service & Connect (NIH/NLM) - https://medlineplus.gov/about/developers/webservices/
+   Free, no key. Search health topics by keyword (e.g. "nausea"); returns XML/JSON
+   with consumer-friendly articles. Best free fit for WebMD-style content.
+7. NHS Website Content API (UK) - https://developer.api.nhs.uk
+   Free with registration. Conditions, symptoms and medicines content, including
+   pregnancy pages. Licence terms apply (attribution).
+8. openFDA - https://open.fda.gov/apis/
+   Free (API key optional). Drug labels (incl. pregnancy warnings sections), adverse
+   events. Useful to check a medication's pregnancy information.
+9. DailyMed (NLM) - https://dailymed.nlm.nih.gov/dailymed/app-support-web-services.cfm
+   Free. Full FDA drug label text, including "Use in Specific Populations: Pregnancy".
+10. RxNorm / RxNav (NLM) - https://lhncbc.nlm.nih.gov/RxNav/APIs/
+   Free. Drug name normalisation and interactions.
+11. Infermedica-independent ontology data:
+   - Human Phenotype Ontology API - https://hpo.jax.org/api (free; symptom/phenotype terms)
+   - Disease Ontology / Monarch Initiative API - https://api.monarchinitiative.org (free; symptom-disease links)
+   - WHO ICD API - https://icd.who.int/icdapi (free with registration; ICD-11 search)
+   - Open Disease / disease.sh is for epidemiology only (not symptom search).
+12. LactMed / DrugBank
+   - LactMed (NLM) via TOXNET/PubChem: breastfeeding drug info.
+   - DrugBank API: commercial, free academic tier.
+
+NOT AVAILABLE
+- WebMD has no public API. Scraping it violates its terms.
+
+RECOMMENDATION FOR THIS SITE (pregnancy focus)
+- Keep curated data in data.js for vetted pregnancy-safe treatments.
+- Add MedlinePlus Web Service (free, no key) for symptom -> article lookup.
+- Use openFDA / DailyMed to display pregnancy sections of drug labels.
+- Consider Infermedica or NHS API if a richer symptom checker is needed.
+- Call APIs from a small backend proxy to protect API keys, and keep the
+  "not medical advice" disclaimer visible.
